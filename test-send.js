@@ -5,7 +5,53 @@ import dotenv from 'dotenv';
 
 dotenv.config();
 
-const testData = JSON.parse(fs.readFileSync('./test-webhook.json', 'utf8'));
+// Базовый шаблон события
+const baseData = JSON.parse(fs.readFileSync('./test-webhook.json', 'utf8'));
+
+// Простая генерация рандомных данных
+const rand = Math.floor(Math.random() * 1_000_000);
+const nowIso = new Date().toISOString();
+
+const randomPhone = '79' + String(Math.floor(1_000_000_000 + Math.random() * 8_999_999_999));
+const randomName = `Тестовый клиент #${rand}`;
+const randomCompany = `ООО \"Тестовая компания #${rand}\"`;
+const randomBudget = String(100000 + Math.floor(Math.random() * 900000));
+
+const testData = {
+  ...baseData,
+  id: `test-event-${nowIso}-${rand}`,
+  timestamp: nowIso,
+  contact: {
+    ...baseData.contact,
+    id: `contact-${rand}`,
+    phone: randomPhone,
+    additionalFields: {
+      ...(baseData.contact?.additionalFields || {}),
+      name: randomName,
+    },
+    tags: [`тест_${rand}`, 'ai-прозвонщик'],
+  },
+  call: {
+    ...baseData.call,
+    id: `call-${rand}`,
+    createdAt: nowIso,
+    updatedAt: nowIso,
+    callDetails: {
+      ...(baseData.call?.callDetails || {}),
+      destination_phone: randomPhone,
+    },
+    agreements: {
+      ...(baseData.call?.agreements || {}),
+      client_name: randomName,
+      leadTransfer: {
+        ...(baseData.call?.agreements?.leadTransfer || {}),
+        company: randomCompany,
+        budget: randomBudget,
+      },
+    },
+  },
+};
+
 const body = JSON.stringify(testData);
 
 const WEBHOOK_SECRET = process.env.WEBHOOK_SECRET || '';

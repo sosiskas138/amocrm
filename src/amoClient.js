@@ -142,18 +142,18 @@ function buildContactCustomFields(phone, email, position, phoneFieldId, emailFie
   const customFields = [];
 
   if (phoneFieldId) {
-    const enumId = getEnumId('phone', FIELD_MAPPING.contact.phone.defaultEnum);
     customFields.push({
       field_id: phoneFieldId,
-      values: [{ value: phone, ...(enumId && { enum_id: enumId }) }],
+      // enum_id не передаём — amoCRM поставит стандартный тип телефона
+      values: [{ value: phone }],
     });
   }
 
   if (email && emailFieldId) {
-    const enumId = getEnumId('email', FIELD_MAPPING.contact.email.defaultEnum);
     customFields.push({
       field_id: emailFieldId,
-      values: [{ value: email, ...(enumId && { enum_id: enumId }) }],
+      // enum_id не передаём — amoCRM поставит стандартный тип email
+      values: [{ value: email }],
     });
   }
 
