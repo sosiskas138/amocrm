@@ -1,7 +1,7 @@
 services:
   app:
     build: .
-    container_name: amocrm-webhook-integration
+    container_name: amocrm-bfl
     restart: unless-stopped
     ports:
       - "${EXTERNAL_PORT:-3000}:${INTERNAL_PORT:-3000}"
