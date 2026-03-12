@@ -42,6 +42,9 @@ export async function amoRequest(method, endpoint, data = null) {
     }
 
     // Обрабатываем остальные ошибки
+    if (error.response?.data) {
+      console.error('[amoClient] Полный ответ ошибки amoCRM:', JSON.stringify(error.response.data, null, 2));
+    }
     const errorMessage = error.response?.data?.detail || error.response?.data?.title || error.message;
     throw new Error(`amoCRM API ошибка: ${errorMessage}`);
   }
