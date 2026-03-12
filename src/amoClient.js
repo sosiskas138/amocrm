@@ -271,11 +271,17 @@ export async function createLead(contactId, name, budget = null, tags = []) {
     name: name,
     price: budget || 0,
     pipeline_id: FIELD_MAPPING.lead.pipelineId,
-    status_id: FIELD_MAPPING.lead.statusId,
     _embedded: {
       contacts: [{ id: contactId }],
     },
   }];
+
+  // Статус этапа указываем только если он задан явно.
+  // Если FIELD_MAPPING.lead.statusId === null, amoCRM сама поместит
+  // сделку в стандартный этап воронки.
+  if (FIELD_MAPPING.lead.statusId) {
+    leadData[0].status_id = FIELD_MAPPING.lead.statusId;
+  }
 
   if (tags?.length > 0) {
     leadData[0]._embedded.tags = tags.map(tag => ({ name: tag }));

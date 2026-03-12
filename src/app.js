@@ -31,8 +31,17 @@ function verifyWebhookSignature(payload, signature, secret) {
 }
 
 const app = express();
-// Используем INTERNAL_PORT для работы внутри контейнера, или PORT как fallback
-const PORT = process.env.INTERNAL_PORT || process.env.PORT || 3000;
+// Порты должны быть заданы явно в .env
+const INTERNAL_PORT = process.env.INTERNAL_PORT;
+const PORT = process.env.PORT;
+
+if (!INTERNAL_PORT && !PORT) {
+  console.error('[app] INTERNAL_PORT или PORT должны быть заданы в .env. Сервер не будет запущен.');
+  process.exit(1);
+}
+
+// Порт, на котором реально слушаем (в контейнере обычно INTERNAL_PORT)
+const LISTEN_PORT = INTERNAL_PORT || PORT;
 
 // Middleware для парсинга JSON (сохраняем сырое тело для проверки подписи)
 app.use(express.json({
@@ -127,9 +136,9 @@ function initializeToken() {
 }
 
 // Запуск сервера
-app.listen(PORT, () => {
-  console.log(`[app] Сервер запущен на порту ${PORT}`);
-  console.log(`[app] Webhook endpoint: http://localhost:${PORT}/webhook`);
+app.listen(LISTEN_PORT, () => {
+  console.log(`[app] Сервер запущен на порту ${LISTEN_PORT}`);
+  console.log(`[app] Webhook endpoint: http://localhost:${LISTEN_PORT}/webhook`);
   
   initializeToken();
 });

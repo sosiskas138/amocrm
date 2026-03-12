@@ -58,8 +58,12 @@ export const FIELD_MAPPING = {
   
   // Настройки сделок
   lead: {
-    pipelineId: 10582926,  // ID воронки "от AI прозвонщика"
-    statusId: 83463326,    // ID этапа "Первичный контакт"
+    pipelineId: Number(process.env.AMO_PIPELINE_ID) || 10582926,  // ID воронки "от AI прозвонщика"
+    // Если AMO_PIPELINE_STATUS_ID не задан, statusId = null,
+    // и сделка попадёт в стандартный этап воронки
+    statusId: process.env.AMO_PIPELINE_STATUS_ID
+      ? Number(process.env.AMO_PIPELINE_STATUS_ID)
+      : null,
   },
 };
 
