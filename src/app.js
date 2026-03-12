@@ -105,6 +105,7 @@ app.post('/webhook', async (req, res) => {
     // Остальные ошибки - 500
     return res.status(500).json({
       error: error.message || 'Внутренняя ошибка сервера',
+      ...(error.amoResponse && { amoResponse: error.amoResponse }),
     });
   }
 });
