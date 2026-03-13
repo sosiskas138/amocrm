@@ -1,34 +1,10 @@
 import express from 'express';
-import crypto from 'crypto';
 import dotenv from 'dotenv';
 import * as tokenStore from './tokenStore.js';
 import * as webhookHandler from './webhookHandler.js';
 
 // Загружаем переменные окружения
 dotenv.config();
-
-/**
- * Проверка подписи webhook (HMAC-SHA256)
- * @param {string|Buffer} payload - сырое тело запроса
- * @param {string} signature - подпись из заголовка (hex)
- * @param {string} secret - секретный ключ
- * @returns {boolean}
- */
-function verifyWebhookSignature(payload, signature, secret) {
-  if (!signature || !secret) return false;
-  const computed = crypto
-    .createHmac('sha256', secret)
-    .update(payload)
-    .digest('hex');
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(computed, 'hex'),
-      Buffer.from(signature, 'hex')
-    );
-  } catch {
-    return false;
-  }
-}
 
 const app = express();
 // Порты должны быть заданы явно в .env
@@ -43,12 +19,8 @@ if (!INTERNAL_PORT && !PORT) {
 // Порт, на котором реально слушаем (в контейнере обычно INTERNAL_PORT)
 const LISTEN_PORT = INTERNAL_PORT || PORT;
 
-// Middleware для парсинга JSON (сохраняем сырое тело для проверки подписи)
-app.use(express.json({
-  verify: (req, _res, buf) => {
-    req.rawBody = buf;
-  },
-}));
+// Middleware для парсинга JSON
+app.use(express.json());
 
 // Логирование запросов (только для webhook)
 app.use((req, res, next) => {
@@ -63,20 +35,6 @@ app.use((req, res, next) => {
  */
 app.post('/webhook', async (req, res) => {
   try {
-    const webhookSecret = process.env.WEBHOOK_SECRET;
-    if (webhookSecret) {
-      const signature = req.get('X-Signature') || req.get('x-signature');
-      const rawBody = req.rawBody || Buffer.from(JSON.stringify(req.body));
-      if (!verifyWebhookSignature(rawBody, signature || '', webhookSecret)) {
-        console.warn('[app] Неверная или отсутствующая подпись webhook');
-        return res.status(401).json({
-          error: 'Неверная подпись webhook',
-        });
-      }
-    } else {
-      console.warn('[app] WEBHOOK_SECRET не задан — проверка подписи отключена');
-    }
-
     // Проверяем наличие токена
     if (!tokenStore.hasToken()) {
       console.error('[app] Токен не установлен');
